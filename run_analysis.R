@@ -4,11 +4,14 @@
 # Appropriately labels the data set with descriptive variable names.
 
 #Getting Activity Label Data
+require(data.table)
+require(plyr)
+
 activityLabels<-read.table("./UCI HAR Dataset/activity_labels.txt", header=FALSE )
 colNamesActLabels=c("ActivityLabelID","ActivityLabel")
 colnames(activityLabels)<-colNamesActLabels
 
-#Getting and storing Suject Data for Test and Train
+#Getting and storing Subject Data for Test and Train
 subjectTest<-read.table("./UCI HAR Dataset/test/subject_test.txt",header=FALSE)
 colnames(subjectTest)<-c("subjectID")
 subjectTrain<-read.table("./UCI HAR Dataset/train/subject_train.txt",header=FALSE)
@@ -51,8 +54,13 @@ filtColumns_combinedX<-filtColumns_combinedX[-c(grep("-meanFreq",names(filtColum
 
 #Finally combine X and Y
 allCombined<-cbind(combinedY,filtColumns_combinedX)
+allCombined<-allCombined[-c(which( colnames(allCombined)=="ActivityLabelID" ))]
+#Removing the column related to the label ID since it is not required for the grouping
  #From now on, we can work off of allCombined which is a tidy data set.
 #There is one measure for each row
         # one observation for each column
 
 # From the data set in step 4, creates a second, independent tidy data set with the average of each variable for each activity and each subject.
+
+allCombined_meanByActSubject<-allCombined %>% group_by(ActivityLabel,subjectID) %>% summarise_all(funs(mean))
+write.table(allCombined_meanByActSubject,file="analysis_results.txt", row.names=FALSE)
